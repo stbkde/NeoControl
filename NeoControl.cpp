@@ -101,8 +101,8 @@ void NeoControl::SetStripBrightness(uint8_t targetBrightness)
                 _lastBrightness     = _currentBrightness;
                 _currentBrightness  = targetBrightness;
                 
-                this->_strip->SetBrightness(targetBrightness);
-                //FadeToBrightness(_brightnessFadingTime, targetBrightness);
+                //this->_strip->SetBrightness(targetBrightness);
+                FadeToBrightness(_brightnessFadingTime, targetBrightness);
             }
             else 
             {
@@ -119,8 +119,8 @@ void NeoControl::SetStripBrightness(uint8_t targetBrightness)
                 _lastBrightness     = _currentBrightness;
                 _currentBrightness  = targetBrightness;
                 
-                this->_strip->SetBrightness(targetBrightness);
-                //FadeToBrightness(_brightnessFadingTime, targetBrightness);
+                //this->_strip->SetBrightness(targetBrightness);
+                FadeToBrightness(_brightnessFadingTime, targetBrightness);
             }
             else 
             {

@@ -152,28 +152,65 @@ private:
     
     void FadeToRgbColor(uint16_t time, RgbColor targetColor)
     {
-        //Serial.println("Fading to R:"+String(targetColor.R)+", G:"+String(targetColor.G)+", B:"+String(targetColor.B));
         AnimEaseFunction easing = NeoEase::Linear;
         
         for (uint16_t pixel = 1; pixel < WS281X_STRIP_COUNT; pixel++)
         {
             RgbColor originalColor = _strip->GetPixelColor(pixel); 
             
-            // Animation update routine
             AnimUpdateCallback colorAnimUpdate = [=](const AnimationParam& param)
             {
-                //Serial.println("AnimUpdateCallback colorAnimUpdate");
                 float progress = easing(param.progress);
-                //Serial.println("AnimUpdateCallback colorAnimUpdate: progress = " + String(progress) + ";");
                 RgbColor updatedColor = RgbColor::LinearBlend(originalColor, targetColor, progress);
                 _strip->SetPixelColor(pixel, updatedColor);
             };
             
-            //Serial.println("Pixel is prepared! Starting Animation...");
-            // animations.StartAnimation(pixel, time, colorAnimUpdate);
+            // animations.StartAnimation(pixel, time, colorAnimUpdate);     // starting all at once
             _waitingAnimator->StartAnimation(pixel, time/2 +(pixel*time)/pixel/2, colorAnimUpdate); // Do not update all pixels at once but the leftmost twice as fast
         }
     };
+    
+    void FadeToBrightness(uint16_t time, uint8_t targetBrightness)
+    {
+        Serial.println("Fading to brightness " + String(targetBrightness));
+        if (targetBrightness < _minBrightness) {
+            targetBrightness = _minBrightness;
+        }
+        uint16_t originalBrightness = this->_strip->GetBrightness();
+        
+        AnimEaseFunction easing = NeoEase::Linear;
+        
+        AnimUpdateCallback brightAnimUpdate = [=](const AnimationParam& param)
+        {
+            int updatedBrightness;
+            float progress = easing(param.progress); 
+            if (progress == 0.00) {
+                progress = 0.01;
+            }
+            
+            if (originalBrightness < targetBrightness) {  // fading up
+                updatedBrightness = (progress * (originalBrightness - targetBrightness));
+                updatedBrightness = ~updatedBrightness + 1; // +/-
+                updatedBrightness += originalBrightness;
+            }
+            else if (originalBrightness > targetBrightness) {  // fading down
+                updatedBrightness = (progress * (targetBrightness - originalBrightness));
+                updatedBrightness = ~updatedBrightness + 1; // +/-
+                
+                updatedBrightness -= originalBrightness;
+                updatedBrightness = ~updatedBrightness + 1;
+            }
+
+            if(this->_strip->GetBrightness() != updatedBrightness) 
+            {
+                Serial.println("Setting updated brightness = " + String(updatedBrightness));
+                this->_strip->SetBrightness(updatedBrightness);
+            }
+        };
+        
+        this->_brightFadingAnimator->StartAnimation(1, time, brightAnimUpdate);
+        
+    }
     
 protected:
     uint16_t _pin = 0;
