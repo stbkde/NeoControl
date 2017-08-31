@@ -1,14 +1,12 @@
 /*-------------------------------------------------------------------------
 NeoAnimator provides animation timing support.
 
-Written by Michael C. Miller.
+Written by Stephan Beier.
 
 I invest time and resources providing this open source code,
 please support me by dontating (see https://github.com/Makuna/NeoPixelBus)
 
 -------------------------------------------------------------------------
-This file is part of the Makuna/NeoPixelBus library.
-
 NeoPixelBus is free software: you can redistribute it and/or modify
 it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation, either version 3 of
