@@ -33,30 +33,31 @@ License along with NeoPixel.  If not, see
 
 
 
-enum AnimationState
+enum AnimationStateEx
 {
-    AnimationState_Started,
-    AnimationState_Progress,
-    AnimationState_Completed
+    Animation_State_Started,
+    Animation_State_Progress,
+    Animation_State_Completed
 };
 
-struct AnimationParam
+struct AnimationParamEx
 {
     float progress;
     uint16_t index;
-    AnimationState state;
+    AnimationStateEx state;
+    NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *pixelbus;
 };
 
 #ifdef ARDUINO_ARCH_AVR
 
-typedef void(*AnimUpdateCallback)(const AnimationParam& param);
+typedef void(*AnimUpdateCallbackEx)(const AnimationParamEx& param);
 
 #else
 
 #undef max
 #undef min
 #include <functional>
-typedef std::function<void(const AnimationParam& param)> AnimUpdateCallback;
+typedef std::function<void(const AnimationParamEx& param)> AnimUpdateCallbackEx;
 
 #endif
 
@@ -81,10 +82,10 @@ public:
 
     bool NextAvailableAnimation(uint16_t* indexAvailable, uint16_t indexStart = 0);
     
-    void StartAnimation(uint16_t indexAnimation,
+    void StartAnimation(NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus,
+                        uint16_t indexAnimation,
                         uint16_t duration, 
-                        AnimUpdateCallback animUpdate, 
-                        NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus);
+                        AnimUpdateCallbackEx animUpdate);
     
     void StopAnimation(uint16_t indexAnimation);
     void StopAll();
@@ -96,10 +97,11 @@ public:
             return;
         }
 
-        StartAnimation(indexAnimation, 
+        StartAnimation(_animations[indexAnimation]._pixelBus,
+                       indexAnimation, 
                        _animations[indexAnimation]._duration, 
-                       (_animations[indexAnimation]._fnCallback), 
-                       _animations[indexAnimation]._bus);
+                       (_animations[indexAnimation]._fnCallback)
+                       );
     }
 
     bool IsAnimationActive(uint16_t indexAnimation) const
@@ -149,23 +151,22 @@ public:
     }
 
 private:
-    struct AnimationContext
+    struct AnimationContextEx
     {
-        AnimationContext() :
+        AnimationContextEx() :
             _duration(0),
             _remaining(0),
-            _fnCallback(NULL),
-            _bus(NULL)
+            _fnCallback(NULL)
         {}
 
-        void StartAnimation(uint16_t duration, 
-                            AnimUpdateCallback animUpdate, 
-                            NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus)
+        void StartAnimation(NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus,
+                            uint16_t duration, 
+                            AnimUpdateCallbackEx animUpdate)
         {
             _duration = duration;
             _remaining = duration;
             _fnCallback = animUpdate;
-            _bus = bus;
+            _pixelBus = bus;
             
         }
 
@@ -177,12 +178,12 @@ private:
         uint16_t _duration;
         uint16_t _remaining;
        
-        AnimUpdateCallback _fnCallback;
-        NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *_bus;
+        NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *_pixelBus;
+        AnimUpdateCallbackEx _fnCallback;
     };
 
     uint16_t _countAnimations;
-    AnimationContext* _animations;
+    AnimationContextEx* _animations;
     uint32_t _animationLastTick;
     uint16_t _activeAnimations;
     uint16_t _timeScale;

@@ -25,16 +25,12 @@ License along with NeoPixel.  If not, see
 #define OFF false
 
 // More information on https://github.com/Makuna/NeoPixelBus/wiki/NeoPixelBus-object
-#define WS281X_FEATURE NeoGrbFeature
-#define WS281X_METHOD Neo800KbpsMethod
-#define WS281X_STRIP_COUNT 30
-#define WS281X_STRIP_PIN 3
+#include "config.h"
 
 #include <NeoPixelBrightnessBus.h>
+#include <NeoPixelAnimator.h>
 //#include "NeoAnimator.h"
-#include "NeoPixelAnimator.h"
-
-//#include "WaitingAnimations.h"  // is using WaitingAnimator
+#include "WaitingAnimations.h"
 
 
 class NeoControl
@@ -121,6 +117,8 @@ public:
     {
     }
     
+    void StartPulseColorAnimation();
+    
 
 private:
     NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *_strip;
@@ -142,6 +140,14 @@ private:
     NeoPixelAnimator *_colorFadingAnimator;
     NeoPixelAnimator *_waitingAnimator;
     
+    struct _sAnimationState
+    {
+        RgbColor StartingColor;
+        RgbColor EndingColor;
+    };
+    _sAnimationState _animationState[1];
+    uint16_t _effectState = 0;
+    
     uint16_t _colorFadingTime       = 1000;
     uint16_t _brightnessFadingTime  = 2000;
     
@@ -150,22 +156,15 @@ private:
     
     void _setStripColor(RgbColor color);
     
-    void _stopAnimations(uint16_t start, uint16_t end)
-    {
-        for (uint16_t index=start; index<=end; index++)
-        {
-            _waitingAnimator->StopAnimation(index);
-        }
-    }
-    
     void FadeToRgbColor(uint16_t time, RgbColor targetColor);
     
     void FadeToBrightness(uint16_t time, uint8_t targetBrightness);
     
+    //void _blendAnimUpdate(const AnimationParam& param);
+    //void _pulseAnimUpdate(const AnimationParam& param);
+    
 protected:
     uint16_t _pin = 0;
     uint16_t _countPixels = 0;
-    
-    
     
 };

@@ -7,9 +7,9 @@ NeoControl::NeoControl(bool b)
     _pin            = WS281X_STRIP_PIN;
     _countPixels    = WS281X_STRIP_COUNT;
     
-    this->_waitingAnimator      = new NeoPixelAnimator(_countPixels);
     this->_brightFadingAnimator = new NeoPixelAnimator(_countPixels);
     this->_colorFadingAnimator  = new NeoPixelAnimator(_countPixels);
+    this->_waitingAnimator      = new NeoPixelAnimator(_countPixels);
 }
 
 NeoControl::~NeoControl() {
@@ -26,10 +26,6 @@ void NeoControl::setup()
     }
     
     this->_strip->Show();
-    
-    Serial.println("this->_waitingAnimator->getAnimationCount() = " + String(this->_waitingAnimator->getAnimationCount()));
-    Serial.println("this->_brightFadingAnimator->getAnimationCount() = " + String(this->_brightFadingAnimator->getAnimationCount()));
-    Serial.println("this->_colorFadingAnimator->getAnimationCount() = " + String(this->_colorFadingAnimator->getAnimationCount()));
 }
 
 void NeoControl::loop()
@@ -58,8 +54,6 @@ void NeoControl::SetStripColor(RgbColor color)
     Serial.println("Set to color rgb: " + _lastColor.toString(','));
     if (this->_waitingAnimator->IsAnimating())
     {
-        this->_colorFadingAnimator->StopAll();
-        
         if (_powerState == ON) 
         {
             _lastColor = _currColor;
@@ -83,7 +77,7 @@ void NeoControl::SetStripColor(RgbColor color)
             _lastColor = _currColor;
             _currColor = color;
             
-            //_setStripColor(color);
+            this->_colorFadingAnimator->StopAll();
             FadeToRgbColor(_colorFadingTime, color);
         }
         else 
@@ -255,6 +249,12 @@ void NeoControl::FadeToBrightness(uint16_t time, uint8_t targetBrightness)
     this->_brightFadingAnimator->StartAnimation(1, time, brightAnimUpdate);   
 }
 
+void NeoControl::StartPulseColorAnimation()
+{ 
+    
+} 
+
+
 /** private **/
 
 void NeoControl::_setStripColor(RgbColor color)
@@ -266,3 +266,50 @@ void NeoControl::_setStripColor(RgbColor color)
     this->_strip->Show();
     Serial.println(_currColor.toString(','));
 }
+
+
+/*void NeoControl::_blendAnimUpdate(const AnimationParam& param)
+{ 
+    //Serial.println("blendAnimUpdate...");
+    RgbColor updatedColor = RgbColor::LinearBlend(
+        _animationState[param.index].StartingColor,
+        _animationState[param.index].EndingColor,
+        param.progress);
+    
+    for (uint16_t pixel = 0; pixel < _countPixels; pixel++)
+    {
+        this->_strip->SetPixelColor(pixel, updatedColor);
+    }
+}
+
+void NeoControl::_pulseAnimUpdate(const AnimationParam& param)
+{
+    ///Serial.println("PulseAnimUpdate...");
+    if (param.state == AnimationState_Completed)
+    {
+        if (_effectState == 0)
+        {
+            //Serial.println("effectState = 0");
+            uint16_t time = 1000;
+            
+            _animationState[0].StartingColor = this->_strip->GetPixelColor(0);
+            _animationState[0].EndingColor = RgbColor(20,30,5);
+    
+            this->_waitingAnimator->StartAnimation(1, time, _blendAnimUpdate);
+        }
+        else if (_effectState == 1)
+        {
+            //Serial.println("effectState = 1");
+            // fade to black
+            uint16_t time = 1000;
+
+            _animationState[0].StartingColor = this->_strip->GetPixelColor(0);
+            _animationState[0].EndingColor = _currColor;
+    
+            this->_waitingAnimator->StartAnimation(1, time, _blendAnimUpdate);
+        }
+        
+        _effectState = (_effectState + 1) % 2;
+        this->_waitingAnimator->RestartAnimation(param.index);
+    }
+}*/

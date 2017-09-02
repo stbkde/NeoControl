@@ -1,26 +1,55 @@
 #include "WaitingAnimations.h"
 
-/*
-void FadeToRgbColor(uint16_t time, RgbColor targetColor, NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus)
+
+void PulseColor_Animation::StartAnimation(NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *pixelBus)
 {
-    Serial.println("Fading to R:"+String(targetColor.R)+", G:"+String(targetColor.G)+", B:"+String(targetColor.B));
+    this->_strip = pixelBus;
+    _countPixels = this->_strip->PixelCount();
     
-    AnimEaseFunction easing = NeoEase::Linear;
-    
-    for (uint16_t pixel = 0; pixel < WS281X_STRIP_COUNT; pixel++)
+    this->_animator->StartAnimation(1, 1000, static_cast<void(*)()>(_pulseAnimUpdate));
+}
+
+
+void PulseColor_Animation::_blendAnimUpdate(const AnimationParam& param)
+{
+    //Serial.println("BlendAnimUpdate...");
+    RgbColor updatedColor = RgbColor::LinearBlend(
+                                        _animationState[param.index].StartingColor,
+                                        _animationState[param.index].EndingColor,
+                                        param.progress);
+
+    for (uint16_t pixel = 0; pixel < _countPixels; pixel++)
     {
-        RgbColor originalColor = bus->GetPixelColor(pixel); 
-        
-        AnimUpdateCallback colorAnimUpdate = [=](const AnimationParam& param)
-        {
-            float progress = easing(param.progress);
-            
-            RgbColor updatedColor = RgbColor::LinearBlend(originalColor, targetColor, progress);
-            bus->SetPixelColor(pixel, updatedColor);
-        };
-        
-        // animations.StartAnimation(pixel, time, colorAnimUpdate);
-        WaitingAnimator.StartAnimation(pixel, time/2 +(pixel*time)/pixel/2, colorAnimUpdate, bus); // Do not update all pixels at once but the leftmost twice as fast
+        this->_strip->SetPixelColor(pixel, updatedColor);
     }
-};
-*/
+}
+
+void PulseColor_Animation::_pulseAnimUpdate(const AnimationParam& param)
+{
+    if (param.state == AnimationState_Completed)
+    {
+        if (_effectState == 0)
+        {
+            //Serial.println("effectState = 0");
+            uint16_t time = 1000;
+   
+            _animationState[0].StartingColor = this->_strip->GetPixelColor(0);
+            _animationState[0].EndingColor = RgbColor(20,30,5);
+    
+            this->_animator->StartAnimation(0, time, _blendAnimUpdate);
+        }
+        else if (_effectState == 1)
+        {
+            //Serial.println("effectState = 1");
+            uint16_t time = 1000;
+ 
+            _animationState[0].StartingColor = this->_strip->GetPixelColor(0);
+            _animationState[0].EndingColor = StripCurrentColor;
+    
+            this->_animator->StartAnimation(0, time, _blendAnimUpdate);
+        }
+        
+        _effectState = (_effectState + 1) % 2;
+        this->_animator->RestartAnimation(param.index);
+    }
+}

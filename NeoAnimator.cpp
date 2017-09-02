@@ -31,7 +31,7 @@ NeoAnimator::NeoAnimator(uint16_t countAnimations, uint16_t timeScale) :
     _isRunning(true)
 {
     setTimeScale(timeScale);
-    _animations = new AnimationContext[_countAnimations];
+    _animations = new AnimationContextEx[_countAnimations];
 }
 
 NeoAnimator::~NeoAnimator()
@@ -64,10 +64,10 @@ bool NeoAnimator::NextAvailableAnimation(uint16_t* indexAvailable, uint16_t inde
     return false;
 }
 
-void NeoAnimator::StartAnimation(uint16_t indexAnimation,
+void NeoAnimator::StartAnimation(NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus,
+                                 uint16_t indexAnimation,
                                  uint16_t duration, 
-                                 AnimUpdateCallback animUpdate,
-                                 NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus)
+                                 AnimUpdateCallbackEx animUpdate)
 {
     if (indexAnimation >= _countAnimations || animUpdate == NULL)
     {
@@ -88,7 +88,7 @@ void NeoAnimator::StartAnimation(uint16_t indexAnimation,
         duration = 1;
     }
 
-    _animations[indexAnimation].StartAnimation(duration, animUpdate, *&bus);
+    _animations[indexAnimation].StartAnimation(*&bus, duration, animUpdate);
 
     _activeAnimations++;
 }
@@ -123,34 +123,36 @@ void NeoAnimator::UpdateAnimations()
     {
         uint32_t currentTick = millis();
         uint32_t delta = currentTick - _animationLastTick;
-
+        
         if (delta >= _timeScale)
         {
-            AnimationContext* pAnim;
+            AnimationContextEx* pAnim;
 
             delta /= _timeScale; // scale delta into animation time
 
             for (uint16_t iAnim = 0; iAnim < _countAnimations; iAnim++)
             {
                 pAnim = &_animations[iAnim];
-                AnimUpdateCallback fnUpdate = pAnim->_fnCallback;
-                AnimationParam param;
+                AnimUpdateCallbackEx fnUpdate = pAnim->_fnCallback;
+                AnimationParamEx param;
                 
                 param.index = iAnim;
 
                 if (pAnim->_remaining > delta)
                 {
-                    param.state = (pAnim->_remaining == pAnim->_duration) ? AnimationState_Started : AnimationState_Progress;
+                    param.state = (pAnim->_remaining == pAnim->_duration) ? Animation_State_Started : Animation_State_Progress;
                     param.progress = (float)(pAnim->_duration - pAnim->_remaining) / (float)pAnim->_duration;
-
+                    param.pixelbus = pAnim->_pixelBus;
+                    
                     fnUpdate(param);
 
                     pAnim->_remaining -= delta;
                 }
                 else if (pAnim->_remaining > 0)
                 {
-                    param.state = AnimationState_Completed;
+                    param.state = Animation_State_Completed;
                     param.progress = 1.0f;
+                    param.pixelbus = pAnim->_pixelBus;
 
                     _activeAnimations--; 
                     pAnim->StopAnimation();
