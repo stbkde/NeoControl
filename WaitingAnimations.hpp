@@ -1,6 +1,29 @@
 #pragma once
 
-#include "NeoAnimator.h"
+#include "config.h"
+#include "NeoBus.h"
+
+#include <NeoPixelBrightnessBus.h>
+#include <NeoPixelAnimator.h>
 
 
-void FadeToRgbColor(uint16_t time, RgbColor targetColor, NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *bus);
+
+class CWaitingAnimator
+{
+public:
+    CWaitingAnimator()
+    {
+    }
+    
+    void _init_animator();
+    
+    RgbColor StripCurrentColor;
+    
+    void StartAnimation();
+    
+    void StopAnimation();
+    
+    bool IsAnimating();
+    
+    //void loop();
+};
