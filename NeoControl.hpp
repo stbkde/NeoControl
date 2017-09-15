@@ -24,129 +24,102 @@ License along with NeoPixel.  If not, see
 #define ON  true
 #define OFF false
 
-// More information on https://github.com/Makuna/NeoPixelBus/wiki/NeoPixelBus-object
 #include "config.h"
+#include "NeoBus.h"
 
 #include <NeoPixelBrightnessBus.h>
 #include <NeoPixelAnimator.h>
-//#include "NeoAnimator.h"
 #include "WaitingAnimations.h"
+
+
+extern NeoBusType * NeoStrip;
+extern StateType * State;
 
 
 class NeoControl
 {
 public:
-    NeoControl(bool b);
-    ~NeoControl();
+    NeoControl(uint16_t pixelcount, uint8_t pin);
     
-    void Draw()
-    {
-        this->_strip->Show();
-    }
+    void setup();
     
-    void Show()
-    {
-        this->_strip->Show();
-    }
-    
-    void setup();    
     void loop();
     
     void SetStripColor(RgbColor color);
+    
     void SetStripBrightness(uint8_t targetBrightness);
     
-    // should not be used outside of this class
-    // only for testing
-    void SetPixelColor(uint16_t pixel, RgbColor color)
-    {
-        this->_strip->SetPixelColor(pixel, color);
-        this->_strip->Show();
-    }
-    
     void PowerOn();
+    
     void PowerOff();
     
-    bool PowerState()
+    bool PowerState() // const
     {
-        return _powerState;
+        return State->PowerState;
     }
     
-    uint8_t GetStripPin()
+    void printInfo();
+    
+    uint8_t GetStripPin() // const
     {
         return _pin;
     }
     
-    RgbColor GetLastColor()
+    RgbColor GetLastColor() // const
     {
-        return _lastColor;
+        return State->LastColor;
     }
     
     //?
     void SetLastColor(RgbColor color)
     {
-        _lastColor = color;
+        State->LastColor = color;
     }
     
-    RgbColor GetCurrentColor()
+    RgbColor GetCurrentColor() // const
     {
-        return _lastColor;
-    }
-    
-    //?
-    void SetNextColor(RgbColor color)
-    {
-        _lastColor = color;
+        return State->CurrentColor;
     }
     
     //?
     void SetCurrentColor(RgbColor color)
     {
-        _lastColor = color;
-    }
-    
-    RgbColor GetNextColor()
-    {
-        return _lastColor;
+        State->CurrentColor = color;
     }
     
     void StartWaitingAnimation()
     {
+        printInfo();
+        _waitAnimations->StartAnimation();
     }
     
     void StopWaitingAnimation()
     {
+        _waitAnimations->StopAnimation();
+        SetStripColor(State->CurrentColor);
     }
     
-    void StartPulseColorAnimation();
+    void SetPowerSavingMode(bool isEnabled)
+    {
+        _powerSavingMode = isEnabled;
+    }
+    
+    bool GetPowerSavingMode()
+    {
+        return _powerSavingMode;
+    }
     
 
 private:
-    NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> *_strip;
-    
-    bool _powerState = OFF;
-    
-    RgbColor _lastColor = RgbColor(0);
-    RgbColor _currColor = RgbColor(0);
-    RgbColor _nextColor = RgbColor(0);
-    
-    uint8_t _lastBrightness     = 150;
-    uint8_t _currentBrightness  = 150;
-    uint8_t _nextBrightness     = 150;
+    bool _powerSavingMode = true;
     
     uint8_t _minBrightness = 20;
     uint8_t _maxBrightness = 255;
     
-    NeoPixelAnimator *_brightFadingAnimator;
-    NeoPixelAnimator *_colorFadingAnimator;
-    NeoPixelAnimator *_waitingAnimator;
+    CWaitingAnimator * _waitAnimations;
     
-    struct _sAnimationState
-    {
-        RgbColor StartingColor;
-        RgbColor EndingColor;
-    };
-    _sAnimationState _animationState[1];
-    uint16_t _effectState = 0;
+    NeoPixelAnimator * _brightFadingAnimator;
+    NeoPixelAnimator * _colorFadingAnimator;
     
     uint16_t _colorFadingTime       = 1000;
     uint16_t _brightnessFadingTime  = 2000;
@@ -154,17 +127,19 @@ private:
     unsigned long timerCurrentMillis = 0;
     unsigned long timerLastMillis    = 0;
     
+    void _init_leds();
+    
     void _setStripColor(RgbColor color);
     
     void FadeToRgbColor(uint16_t time, RgbColor targetColor);
     
     void FadeToBrightness(uint16_t time, uint8_t targetBrightness);
     
-    //void _blendAnimUpdate(const AnimationParam& param);
-    //void _pulseAnimUpdate(const AnimationParam& param);
-    
 protected:
     uint16_t _pin = 0;
     uint16_t _countPixels = 0;
     
 };
+
+//NeoControl StripControl(30, 3);
+ 

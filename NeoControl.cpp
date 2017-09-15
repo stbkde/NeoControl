@@ -1,93 +1,96 @@
 #include "NeoControl.h" 
-    
-NeoControl::NeoControl(bool b)
+#include "NeoBus.h"
+
+NeoBusType * NeoStrip = nullptr;
+NeoPixelAnimator * WaitingAnimator = nullptr; // waiting animator !!
+
+StateType * State = nullptr;
+
+
+NeoControl::NeoControl(uint16_t pixelcount, uint8_t pin) :
+    _pin(pin),
+    _countPixels(pixelcount)
 {
-    this->_strip = new NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD>(WS281X_STRIP_COUNT, WS281X_STRIP_PIN);
-    
-    _pin            = WS281X_STRIP_PIN;
-    _countPixels    = WS281X_STRIP_COUNT;
-    
     this->_brightFadingAnimator = new NeoPixelAnimator(_countPixels);
     this->_colorFadingAnimator  = new NeoPixelAnimator(_countPixels);
-    this->_waitingAnimator      = new NeoPixelAnimator(_countPixels);
-}
-
-NeoControl::~NeoControl() {
-    delete(this->_strip);
+    this->_waitAnimations = new CWaitingAnimator;
+    
+    State = new StateType;
 }
 
 void NeoControl::setup() 
 {
-    this->_strip->Begin();
+    Serial.println("NeoControl::setup() | Strip setup...");
+    _init_leds();
     
-    for (uint16_t pixel=0; pixel<=_countPixels; pixel++)
-    {
-        this->_strip->SetPixelColor(pixel, RgbColor(0));
-    }
-    
-    this->_strip->Show();
+    _waitAnimations->_init_animator();
 }
 
 void NeoControl::loop()
 {
     if (this->_colorFadingAnimator->IsAnimating()) 
     {
+        Serial.println("loop() | _colorFadingAnimator is animating");
         this->_colorFadingAnimator->UpdateAnimations();
-        this->_strip->Show();
+        NeoStrip->Show();
     }
     
     if (this->_brightFadingAnimator->IsAnimating()) 
     {
         this->_brightFadingAnimator->UpdateAnimations();
-        this->_strip->Show();
+        NeoStrip->Show();
     }
     
-    if (this->_waitingAnimator->IsAnimating()) 
-    {
-        this->_waitingAnimator->UpdateAnimations();
-        this->_strip->Show();
+    if (_waitAnimations) {
+        if (_waitAnimations->IsAnimating()) 
+        {
+            WaitingAnimator->UpdateAnimations();
+            NeoStrip->Show();
+        }
     }
 }
     
 void NeoControl::SetStripColor(RgbColor color)
 {
-    Serial.println("Set to color rgb: " + _lastColor.toString(','));
-    if (this->_waitingAnimator->IsAnimating())
+    Serial.println("NeoControl::SetStripColor(RgbColor) | Set to color rgb: " + State->LastColor.toString(','));
+    if (_waitAnimations->IsAnimating())
     {
-        if (_powerState == ON) 
+        if (State->PowerState == ON) 
         {
-            _lastColor = _currColor;
-            _currColor = color;
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = color;
         }
         else 
         {
             // set black
-            _lastColor = color;     // save as last color, wich will be restored at start
-            _currColor = RgbColor(0);
+            State->LastColor = color;     // save as last color, wich will be restored at start
+            State->CurrentColor = RgbColor(0);
             
-            _setStripColor(RgbColor(0));
-            // ?? FadeToRgbColor(_colorFadingTime, RgbColor(0));
+            //_setStripColor(RgbColor(0));
+            FadeToRgbColor(_colorFadingTime, RgbColor(0));
         }
     }
-    else {
+    else
+    {
+        Serial.println("NeoControl::SetStripColor(RgbColor) | Waiting animator is OFF");
         this->_colorFadingAnimator->StopAll();
         
-        if (_powerState == ON)
+        if (State->PowerState == ON)
         {
-            _lastColor = _currColor;
-            _currColor = color;
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = color;
             
             this->_colorFadingAnimator->StopAll();
             FadeToRgbColor(_colorFadingTime, color);
         }
         else 
         {
+            Serial.println("NeoControl::SetStripColor(RgbColor) | Power State is OFF");
             // set black
-            _lastColor = color;    // save as last color, wich will be restored at start
-            _currColor = RgbColor(0);
+            State->LastColor = color;    // save as last color, wich will be restored at start
+            State->CurrentColor = RgbColor(0);
             
-            _setStripColor(RgbColor(0));
-            //FadeToRgbColor(_colorFadingTime, RgbColor(0), this->_strip);
+            FadeToRgbColor(_colorFadingTime, RgbColor(0));
         }
     }
 }
@@ -96,40 +99,38 @@ void NeoControl::SetStripBrightness(uint8_t targetBrightness)
 {
     if ((targetBrightness >= _minBrightness) && (targetBrightness <= _maxBrightness))
     {
-        if (this->_waitingAnimator->IsAnimating())
+        if (WaitingAnimator->IsAnimating())
         {
-            Serial.println("WaitingAnimationRunning == true");
+            //Serial.println("NeoControl::SetStripBrightness | WaitingAnimationRunning == true");
             this->_brightFadingAnimator->StopAll();
             
-            if (_powerState == ON) 
+            if (State->PowerState == ON) 
             {
-                _lastBrightness     = _currentBrightness;
-                _currentBrightness  = targetBrightness;
+                State->LastBrightness     = State->CurrentBrightness;
+                State->CurrentBrightness  = targetBrightness;
                 
-                //this->_strip->SetBrightness(targetBrightness);
                 FadeToBrightness(_brightnessFadingTime, targetBrightness);
             }
             else 
             {
-                _lastBrightness     = targetBrightness;
+                State->LastBrightness     = targetBrightness;
             }
         }
         else 
         {
-            Serial.println("WaitingAnimationRunning == false");
+            //Serial.println("NeoControl::SetStripBrightness | WaitingAnimationRunning == false");
             this->_brightFadingAnimator->StopAll();
             
-            if (_powerState == ON) 
+            if (State->PowerState == ON) 
             {
-                _lastBrightness     = _currentBrightness;
-                _currentBrightness  = targetBrightness;
+                State->LastBrightness     = State->CurrentBrightness;
+                State->CurrentBrightness  = targetBrightness;
                 
-                //this->_strip->SetBrightness(targetBrightness);
                 FadeToBrightness(_brightnessFadingTime, targetBrightness);
             }
             else 
             {
-                _lastBrightness     = targetBrightness;
+                State->LastBrightness     = targetBrightness;
             }
         }
     }
@@ -137,74 +138,133 @@ void NeoControl::SetStripBrightness(uint8_t targetBrightness)
 
 void NeoControl::PowerOn()
 {   
-    if (_powerState == OFF) 
+    if (State->PowerState == OFF) 
     {   
-        Serial.println("Received switch on signal...");
-        _powerState = ON;
+        Serial.println("NeoControl::PowerOn() | Received switch on signal...");
+        State->PowerState = ON;
         
-        if (_lastColor == RgbColor(0)) { // after hardreset{ 
-            _lastColor = RgbColor(255,0,0);
+        if (State->LastColor == RgbColor(0)) { // after hardreset
+            State->LastColor = RgbColor(255,0,0);
         }
-        if (_lastBrightness < 50) {
-            _lastBrightness += 100;
+        if (State->LastBrightness < 50) {
+            State->LastBrightness += 100;
         }
         
-        if (this->_waitingAnimator->IsAnimating()) 
+        if (_waitAnimations->IsAnimating()) 
         {
-            Serial.println("WaitingAnimationRunning == true");
+            Serial.println("NeoControl::PowerOn() | WaitingAnimationRunning == true");
             
-            _currentBrightness = _lastBrightness;
-            _currColor = _lastColor;
+            State->CurrentBrightness = State->LastBrightness;
+            State->CurrentColor = State->LastColor;
         }
         else 
         {            
-            SetStripBrightness(_lastBrightness);
-            SetStripColor(_lastColor);
+            SetStripBrightness(State->LastBrightness);
+            SetStripColor(State->LastColor);
         }
     }
 }
 
 void NeoControl::PowerOff()
 {
-    if (_powerState == ON)
+    if (State->PowerState == ON)
     {
-        Serial.println("Switching OFF and setting LastRgbColor = CurrentRgbColor");
+        Serial.println("NeoControl::PowerOff() | Switching OFF and setting LastRgbColor = CurrentRgbColor");
         
-        if (this->_waitingAnimator->IsAnimating()) 
+        if (WaitingAnimator->IsAnimating()) 
         {
-            _lastColor = _currColor;
-            _currColor = RgbColor(0);
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = RgbColor(0);
             
-            _lastBrightness = _currentBrightness;
-            _currentBrightness = this->_strip->GetBrightness();
-            
+            State->LastBrightness = State->CurrentBrightness;
+            State->CurrentBrightness = NeoStrip->GetBrightness();
         }
         else 
         {
             SetStripColor(RgbColor(0));
         }
         
-        _powerState = OFF;
+        State->PowerState = OFF;
     }
+}
+
+
+void NeoControl::printInfo() {
+    Serial.println("*********** Strip Info ***********************");
+    Serial.println("* LED count: " + String(NeoStrip->PixelCount()));
+    Serial.println("*\n");
+    
+    Serial.println("*********** Color Info ***********************");
+    Serial.println("*");
+    Serial.println("*********** Brightness ***********************");
+    Serial.println("* Last Brightness State: " + String(State->LastBrightness));
+    Serial.println("* Current Brightness State: " + String(State->CurrentBrightness));
+    Serial.println("*");
+    Serial.println("*********** RGB Values ***********************");
+    Serial.println("* Last Color: RGB:" + String(State->LastColor.toString(',')));
+    Serial.println("* Current Color: RGB:" + String(State->CurrentColor.toString(',')));
+    Serial.println("*");
+}
+
+
+
+/** private **/
+
+void NeoControl::_init_leds()
+{
+    if (NeoStrip) {
+        NeoStrip->ClearTo(0);
+        NeoStrip->Show();
+        delete NeoStrip;
+        NeoStrip = nullptr;
+    }
+
+    if (!_countPixels) {
+        _countPixels = 1;
+    }
+    NeoStrip = new NeoBusType(_countPixels);
+
+    if (NeoStrip) {
+        NeoStrip->Begin();
+        
+        Serial.println("NeoControl::_init_leds() | Strip created! Setting color directly to black");
+        for (uint16_t pixel=0; pixel<=_countPixels; pixel++)
+        {
+            NeoStrip->SetPixelColor(pixel, RgbColor(0));
+        }
+        
+        Serial.println("NeoControl::_init_leds() | Strip-Show ;)");
+        NeoStrip->Show();
+    } else {
+        Serial.println("ERROR CREATING STRIP");
+    }
+    Serial.println("NeoControl::_init_leds() | Done!");
+
 }
 
 void NeoControl::FadeToRgbColor(uint16_t time, RgbColor targetColor)
 {
+    Serial.println("NeoControl::FadeToRgbColor(uint16_t time, RgbColor targetColor)");
     AnimEaseFunction easing = NeoEase::Linear;
     
-    for (uint16_t pixel = 1; pixel < WS281X_STRIP_COUNT; pixel++)
+    uint16_t stepcount = 1;
+    
+    if ((State->PowerState == ON) && (_powerSavingMode))
+        stepcount = 2;
+    
+    for (uint16_t pixel = 0; pixel < NeoStrip->PixelCount(); pixel += stepcount)
     {
-        RgbColor originalColor = _strip->GetPixelColor(pixel); 
+        RgbColor originalColor = NeoStrip->GetPixelColor(pixel); 
         
         AnimUpdateCallback colorAnimUpdate = [=](const AnimationParam& param)
         {
             float progress = easing(param.progress);
             RgbColor updatedColor = RgbColor::LinearBlend(originalColor, targetColor, progress);
-            _strip->SetPixelColor(pixel, updatedColor);
+            NeoStrip->SetPixelColor(pixel, updatedColor);
         };
         
-        // animations.StartAnimation(pixel, time, colorAnimUpdate);     // starting all at once
-        _colorFadingAnimator->StartAnimation(pixel, time/2 +(pixel*time)/pixel/2, colorAnimUpdate); // Do not update all pixels at once but the leftmost twice as fast
+        _colorFadingAnimator->StartAnimation(pixel, time, colorAnimUpdate);     // starting all at once
+        //_colorFadingAnimator->StartAnimation(pixel, time/2 +(pixel*time)/pixel/2, colorAnimUpdate); // Do not update all pixels at once but the leftmost twice as fast
     }
 };
 
@@ -213,7 +273,7 @@ void NeoControl::FadeToBrightness(uint16_t time, uint8_t targetBrightness)
     if (targetBrightness < _minBrightness) {
         targetBrightness = _minBrightness;
     }
-    uint16_t originalBrightness = this->_strip->GetBrightness();
+    uint16_t originalBrightness = NeoStrip->GetBrightness();
     AnimEaseFunction easing = NeoEase::Linear;
     
     Serial.println("Fading from " + String(originalBrightness) + " to brightness " + String(targetBrightness) + " with time ms " + String(time));
@@ -239,77 +299,24 @@ void NeoControl::FadeToBrightness(uint16_t time, uint8_t targetBrightness)
             updatedBrightness = ~updatedBrightness + 1;
         }
         
-        if (this->_strip->GetBrightness() != updatedBrightness) 
+        if (NeoStrip->GetBrightness() != updatedBrightness) 
         {
             //Serial.println("Setting updated brightness = " + String(updatedBrightness));
-            this->_strip->SetBrightness(updatedBrightness);
+            NeoStrip->SetBrightness(updatedBrightness);
         }
     };
     
     this->_brightFadingAnimator->StartAnimation(1, time, brightAnimUpdate);   
 }
 
-void NeoControl::StartPulseColorAnimation()
-{ 
-    
-} 
-
-
-/** private **/
-
 void NeoControl::_setStripColor(RgbColor color)
 {
+    Serial.println("NeoControl::_setStripColor(RgbColor color)");
     for (uint16_t pixel=0; pixel<=_countPixels; pixel++)
     {
-        this->_strip->SetPixelColor(pixel, color);
+        NeoStrip->SetPixelColor(pixel, color);
     }
-    this->_strip->Show();
-    Serial.println(_currColor.toString(','));
+    NeoStrip->Show();
+    
+    printInfo();
 }
-
-
-/*void NeoControl::_blendAnimUpdate(const AnimationParam& param)
-{ 
-    //Serial.println("blendAnimUpdate...");
-    RgbColor updatedColor = RgbColor::LinearBlend(
-        _animationState[param.index].StartingColor,
-        _animationState[param.index].EndingColor,
-        param.progress);
-    
-    for (uint16_t pixel = 0; pixel < _countPixels; pixel++)
-    {
-        this->_strip->SetPixelColor(pixel, updatedColor);
-    }
-}
-
-void NeoControl::_pulseAnimUpdate(const AnimationParam& param)
-{
-    ///Serial.println("PulseAnimUpdate...");
-    if (param.state == AnimationState_Completed)
-    {
-        if (_effectState == 0)
-        {
-            //Serial.println("effectState = 0");
-            uint16_t time = 1000;
-            
-            _animationState[0].StartingColor = this->_strip->GetPixelColor(0);
-            _animationState[0].EndingColor = RgbColor(20,30,5);
-    
-            this->_waitingAnimator->StartAnimation(1, time, _blendAnimUpdate);
-        }
-        else if (_effectState == 1)
-        {
-            //Serial.println("effectState = 1");
-            // fade to black
-            uint16_t time = 1000;
-
-            _animationState[0].StartingColor = this->_strip->GetPixelColor(0);
-            _animationState[0].EndingColor = _currColor;
-    
-            this->_waitingAnimator->StartAnimation(1, time, _blendAnimUpdate);
-        }
-        
-        _effectState = (_effectState + 1) % 2;
-        this->_waitingAnimator->RestartAnimation(param.index);
-    }
-}*/
