@@ -5,7 +5,7 @@ Your LED IoT! Let's light up your TV board.
 At this moment, NeoControl only works with WS281X leds. I'll fix that later.
 
 ## Features
-+ Waiting animations (startup receiver, beamer, ...)
++ Waiting animation (startup receiver, beamer, ...)
 
 ### In progress...
 + Different waiting animations
@@ -18,11 +18,20 @@ At this moment, NeoControl only works with WS281X leds. I'll fix that later.
 ```c++
 NeoControl StripControl(30, 3); // pixelcount, pin
 
+// add to mainsetup!
+StripControl.setup();
+
 // add to mainloop!
 StripControl.loop();
 
 StripControl.SetStripColor(RgbColor(123,76,107));
 StripControl.SetStripBrightness(198);   // max. 255
 
+// Switch power state of your strip 
+StripControl.PowerOn();
+StripControl.PowerOff();
 
-```
+// check state    
+if (StripControl.PowerState() == ON)   // you can use ON/OFF instead of true/false
+{ ... }
+
