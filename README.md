@@ -25,7 +25,10 @@ StripControl.setup();
 // add to mainloop!
 StripControl.loop();
 
+// fade to color
 StripControl.SetStripColor(RgbColor(123,76,107));
+
+// fade to brightness
 StripControl.SetStripBrightness(198);   // max. 255
 
 // Switch power state of your strip 
