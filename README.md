@@ -1,6 +1,6 @@
 # NeoControl
 
-Your LED IoT! Let's light up your TV board.
+Let's light up your TV board.
 
 At this moment, NeoControl only works with WS281X leds. I'll fix that later.
 
