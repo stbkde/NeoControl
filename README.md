@@ -9,6 +9,7 @@ At this moment, NeoControl only works with WS281X leds. I'll fix that later.
 
 ### In progress...
 + Different waiting animations
++ Power saving mode
 
 ## Dependancies
 + [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made some changes for better color handling. Not needed for NeoControl) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus)
@@ -35,3 +36,6 @@ StripControl.PowerOff();
 if (StripControl.PowerState() == ON)   // you can use ON/OFF instead of true/false
 { ... }
 
+// Start waiting animation
+StripControl.StartWaitingAnimation();
+StripControl.StopWaitingAnimation();
