@@ -15,6 +15,8 @@ Let's light up your TV board.
 At the moment by default NeoControl only works with WS281X leds. I'll fix that later.
 
 ```c++
+#include <NeoControl.h>
+
 NeoControl StripControl(30, 3); // pixelcount, pin
 
 // add to mainsetup!
