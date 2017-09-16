@@ -2,8 +2,6 @@
 
 Let's light up your TV board.
 
-At this moment, NeoControl only works with WS281X leds. I'll fix that later.
-
 ## Features
 + Waiting animation (startup receiver, beamer, ...)
 
@@ -16,6 +14,8 @@ At this moment, NeoControl only works with WS281X leds. I'll fix that later.
 + [Async MQTT client for ESP8266 by Marvin Roger](https://github.com/marvinroger/async-mqtt-client)
   
 ## Getting Started
+At the moment, by default NeoControl only works with WS281X leds. I'll fix that later.
+
 ```c++
 NeoControl StripControl(30, 3); // pixelcount, pin
 
