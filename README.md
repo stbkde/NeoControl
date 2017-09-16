@@ -10,7 +10,7 @@ Let's light up your TV board.
 + Power saving mode
 
 ## Dependancies
-+ [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made a few changes for better color handling) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus)
++ [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made a few changes for better color handling) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus). Many thanks [Makuna](https://github.com/Makuna) for the great library
   
 ## Getting Started
 At the moment by default NeoControl only works with WS281X leds. I'll fix that later.
