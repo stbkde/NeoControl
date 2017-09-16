@@ -7,7 +7,6 @@ Let's light up your TV board.
 
 ### In progress...
 + Different waiting animations
-+ Power saving mode
 
 ## Dependancies
 + [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made a few changes for better color handling) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus). Many thanks [Makuna](https://github.com/Makuna) for the great library
