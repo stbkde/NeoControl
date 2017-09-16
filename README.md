@@ -12,7 +12,7 @@ At this moment, NeoControl only works with WS281X leds. I'll fix that later.
 + Power saving mode
 
 ## Dependancies
-+ [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made some changes for better color handling. Not needed for NeoControl) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus)
++ [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made some changes for better color handling) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus)
 + [Async MQTT client for ESP8266 by Marvin Roger](https://github.com/marvinroger/async-mqtt-client)
   
 ## Getting Started
