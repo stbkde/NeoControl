@@ -11,7 +11,6 @@ Let's light up your TV board.
 
 ## Dependancies
 + [NeoPixelBus by stbkde](https://github.com/stbkde/NeoPixelBus) (I made a few changes for better color handling) forked from [NeoPixelBus by Makuna](https://github.com/Makuna/NeoPixelBus)
-+ [Async MQTT client for ESP8266 by Marvin Roger](https://github.com/marvinroger/async-mqtt-client)
   
 ## Getting Started
 At the moment, by default NeoControl only works with WS281X leds. I'll fix that later.
