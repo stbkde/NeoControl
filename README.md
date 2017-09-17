@@ -43,8 +43,8 @@ The brightness can be controlled via the luminance value of the HslColor, Range 
 ```c++
 HslColor hslcol(230,75,65);
 targetBrightness = 60;  // range [0, 100]
-HslColor newColor(hslcol.H, hslcol.S, targetBrightness);
-StripControl.SetStripColor(HslColor());
+HslColor newColor(hslcol.H, hslcol.S, float(targetBrightness/100));
+StripControl.SetStripColor(newColor);
 ```
 ### Toogle the power state of your strip 
 ```c++
