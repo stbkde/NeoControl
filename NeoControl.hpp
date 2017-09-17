@@ -23,6 +23,8 @@ License along with NeoPixel.  If not, see
 #include "config.h"
 #include "NeoBus.h"
 
+#include <functional>
+
 #include <NeoPixelBrightnessBus.h>
 #include <NeoPixelAnimator.h>
 #include "WaitingAnimations.h"
@@ -42,7 +44,11 @@ public:
     
     void loop();
     
-    void SetStripColor(RgbColor color);
+    void SetStripColor(const RgbColor& color);
+    
+    void SetStripColor(const HsbColor& color);
+    
+    void SetStripColor(const HslColor& color);
     
     void SetStripBrightness(uint8_t targetBrightness);
     
@@ -62,26 +68,14 @@ public:
         return _pin;
     }
     
-    RgbColor GetLastColor() // const
-    {
-        return State->LastColor;
-    }
-    
-    //?
-    void SetLastColor(RgbColor color)
-    {
-        State->LastColor = color;
-    }
-    
-    RgbColor GetCurrentColor() // const
+    RgbColor GetCurrentRgbColor() // const
     {
         return State->CurrentColor;
     }
     
-    //?
-    void SetCurrentColor(RgbColor color)
+    HslColor GetCurrentHslColor() // const
     {
-        State->CurrentColor = color;
+        return State->CurrentColor_hsl;
     }
     
     void StartWaitingAnimation()
@@ -126,9 +120,10 @@ private:
     
     void _init_leds();
     
-    void _setStripColor(RgbColor color);
+    void _setStripColor(const HslColor& color);
     
-    void FadeToRgbColor(uint16_t time, RgbColor targetColor);
+    void FadeToHslColor(uint16_t time, const HslColor& targetColor);
+    void FadeToRgbColor(uint16_t time, const RgbColor& targetColor);
     
     void FadeToBrightness(uint16_t time, uint8_t targetBrightness);
     

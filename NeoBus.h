@@ -46,6 +46,9 @@ struct TState
     RgbColor LastColor;
     RgbColor CurrentColor;
     
+    HslColor LastColor_hsl;
+    HslColor CurrentColor_hsl;
+    
     uint8_t LastBrightness = 150;
     uint8_t CurrentBrightness = 150;
 };
