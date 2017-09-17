@@ -58,7 +58,7 @@ RgbColor rgb(StripControl.GetCurrentColor());   // hsl -> rgb
 The brightness can be controlled via the luminance value of the HslColor, Range [0, 100]
 ```c++
 HslColor hslcol(230,75,65);
-targetBrightness = 60;  // range [0, 100]
+int targetBrightness = 60;  // range [0, 100]
 HslColor newColor(hslcol.H, hslcol.S, float(targetBrightness/100));
 StripControl.SetStripColor(newColor);
 ```
