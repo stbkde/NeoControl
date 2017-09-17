@@ -25,6 +25,15 @@ StripControl.setup();
 // add to mainloop!
 StripControl.loop();
 ```
+### Toogle the power state of your strip 
+```c++
+StripControl.PowerOn();
+StripControl.PowerOff();
+
+// check state    
+if (StripControl.PowerState() == ON)   // you can use ON/OFF instead of true/false
+{ ... }
+```
 ### Color
 ```c++
 // set the strip color as HslColor
@@ -39,6 +48,10 @@ RgbColor rgbcol(rgbval, ',');
 
 StripControl.SetStripColor(HslColor(hsbcol));
 StripControl.SetStripColor(HslColor(rgbcol));
+
+// convert between color spaces
+HslColor hsl(HsbColor(230,70,60));
+RgbColor rgb(StripControl.GetCurrentColor());   // hsl -> rgb
 ```
 ### Brightness
 
@@ -48,15 +61,6 @@ HslColor hslcol(230,75,65);
 targetBrightness = 60;  // range [0, 100]
 HslColor newColor(hslcol.H, hslcol.S, float(targetBrightness/100));
 StripControl.SetStripColor(newColor);
-```
-### Toogle the power state of your strip 
-```c++
-StripControl.PowerOn();
-StripControl.PowerOff();
-
-// check state    
-if (StripControl.PowerState() == ON)   // you can use ON/OFF instead of true/false
-{ ... }
 ```
 ### Waiting animation
 ```c++
