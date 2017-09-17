@@ -24,7 +24,9 @@ StripControl.setup();
 
 // add to mainloop!
 StripControl.loop();
-
+```
+### Color
+```c++
 // set the strip color as HslColor
 StripControl.SetStripColor(HslColor(230,75,65));
 
