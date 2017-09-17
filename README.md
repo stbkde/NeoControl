@@ -33,6 +33,7 @@ StripControl.SetStripColor(HslColor(230,75,65));
 // you can set the color as Rgb and Hsb too
 HsbColor hsbcol(240,65,75);
 
+// parse it directly from a string
 String rgbval = "155,25,210";
 RgbColor rgbcol(rgbval, ',');
 
