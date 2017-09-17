@@ -50,7 +50,7 @@ public:
     
     void SetStripColor(const HslColor& color);
     
-    void SetStripBrightness(uint8_t targetBrightness);
+    //void SetStripBrightness(uint8_t targetBrightness);
     
     void PowerOn();
     
@@ -68,14 +68,14 @@ public:
         return _pin;
     }
     
-    RgbColor GetCurrentRgbColor() // const
-    {
-        return State->CurrentColor;
-    }
-    
     HslColor GetCurrentHslColor() // const
     {
         return State->CurrentColor_hsl;
+    }
+    
+    RgbColor GetCurrentRgbColor() // const
+    {
+        return State->CurrentColor;
     }
     
     void StartWaitingAnimation()

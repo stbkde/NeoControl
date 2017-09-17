@@ -95,7 +95,7 @@ void NeoControl::SetStripColor(const HslColor& color)
             State->CurrentColor = HslColor(0);
             
             //_setStripColor(RgbColor(0));
-            FadeToRgbColor(_colorFadingTime, RgbColor(0));
+            FadeToHslColor(_colorFadingTime, RgbColor(0));
         }
     }
     else
@@ -105,16 +105,11 @@ void NeoControl::SetStripColor(const HslColor& color)
         
         if (State->PowerState == ON)
         {
-            // RgbColor
-            State->LastColor = State->CurrentColor;
-            State->CurrentColor = tcolor;
-            
-            // HslColor
             State->LastColor_hsl = State->CurrentColor_hsl;
             State->CurrentColor_hsl = color;
             
             this->_colorFadingAnimator->StopAll();
-            FadeToRgbColor(_colorFadingTime, tcolor);
+            FadeToHslColor(_colorFadingTime, color);
         }
         else 
         {
@@ -129,7 +124,7 @@ void NeoControl::SetStripColor(const HslColor& color)
             State->LastColor_hsl = color;
             State->CurrentColor_hsl = HslColor(0);
             
-            FadeToRgbColor(_colorFadingTime, RgbColor(0));
+            FadeToHslColor(_colorFadingTime, HslColor(0));
         }
     }
 }
@@ -144,7 +139,7 @@ void NeoControl::SetStripColor(const RgbColor& color)
      SetStripColor(HslColor(color));
 }
     
-void NeoControl::SetStripBrightness(uint8_t targetBrightness)
+/*void NeoControl::SetStripBrightness(uint8_t targetBrightness)
 {
     if ((targetBrightness >= _minBrightness) && (targetBrightness <= _maxBrightness))
     {
@@ -183,7 +178,7 @@ void NeoControl::SetStripBrightness(uint8_t targetBrightness)
             }
         }
     }
-}
+}*/
 
 void NeoControl::PowerOn()
 {   
@@ -217,8 +212,7 @@ void NeoControl::PowerOn()
             State->CurrentColor_hsl = State->LastColor_hsl;
         }
         else 
-        {            
-            SetStripBrightness(State->LastBrightness);
+        {   
             SetStripColor(State->LastColor_hsl);
         }
     }
@@ -232,16 +226,8 @@ void NeoControl::PowerOff()
         
         if (_waitAnimations->IsAnimating()) 
         {
-            // RgbColor
-            State->LastColor = State->CurrentColor;
-            State->CurrentColor = RgbColor(0);
-            
-            // HslColor
             State->LastColor_hsl = State->CurrentColor_hsl;
             State->CurrentColor_hsl = HslColor(0);
-            
-            State->LastBrightness = State->CurrentBrightness;
-            State->CurrentBrightness = NeoStrip->GetBrightness();
         }
         else 
         {
@@ -259,10 +245,6 @@ void NeoControl::printInfo() {
     Serial.println("*\n");
     
     Serial.println("*********** Color Info ***********************");
-    Serial.println("*");
-    Serial.println("*********** Brightness ***********************");
-    Serial.println("* Last Brightness State: " + String(State->LastBrightness));
-    Serial.println("* Current Brightness State: " + String(State->CurrentBrightness));
     Serial.println("*");
     Serial.println("*********** RGB Values ***********************");
     Serial.println("* Last Color: HSL:" + String(State->LastColor_hsl.toString(',')));
@@ -308,7 +290,7 @@ void NeoControl::_init_leds()
 
 void NeoControl::FadeToHslColor(uint16_t time, const HslColor& targetColor)
 {
-    Serial.println("NeoControl::FadeToRgbColor(uint16_t time, RgbColor targetColor)");
+    Serial.println("NeoControl::FadeToHslColor(uint16_t time, RgbColor targetColor)");
     AnimEaseFunction easing = NeoEase::Linear;
     
     uint16_t stepcount = 1;
@@ -363,48 +345,6 @@ void NeoControl::FadeToRgbColor(uint16_t time, const RgbColor& targetColor)
         //_colorFadingAnimator->StartAnimation(pixel, time/2 +(pixel*time)/pixel/2, colorAnimUpdate); 
     }
 };
-
-void NeoControl::FadeToBrightness(uint16_t time, uint8_t targetBrightness)
-{
-    if (targetBrightness < _minBrightness) {
-        targetBrightness = _minBrightness;
-    }
-    uint16_t originalBrightness = NeoStrip->GetBrightness();
-    AnimEaseFunction easing = NeoEase::Linear;
-
-    AnimUpdateCallback brightAnimUpdate = [=](const AnimationParam& param)
-    {        
-        int updatedBrightness;
-        float progress = easing(param.progress); 
-        
-        if (progress == 0.00) {
-            progress = 0.01;
-        }
-        
-        if (originalBrightness < targetBrightness) {  // fading up
-            updatedBrightness = (progress * (originalBrightness - targetBrightness));
-            updatedBrightness = ~updatedBrightness + 1; // +/-
-            updatedBrightness += originalBrightness;
-        }
-        else if (originalBrightness > targetBrightness) {  // fading down
-            updatedBrightness = (progress * (targetBrightness - originalBrightness));
-            updatedBrightness = ~updatedBrightness + 1; // +/-
-            updatedBrightness -= originalBrightness;
-            updatedBrightness = ~updatedBrightness + 1;
-        }
-        
-        if (NeoStrip->GetBrightness() != updatedBrightness) 
-        {
-            NeoStrip->SetBrightness(updatedBrightness);
-        }
-    };
-    
-    if (originalBrightness != targetBrightness) 
-    {
-        Serial.println("Fading from " + String(originalBrightness) + " to brightness " + String(targetBrightness) + " with time ms " + String(time));
-        this->_brightFadingAnimator->StartAnimation(1, time, brightAnimUpdate);   
-    }
-}
 
 void NeoControl::_setStripColor(const HslColor& color)
 {
