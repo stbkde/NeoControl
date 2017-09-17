@@ -70,7 +70,7 @@ void CWaitingAnimator::StartAnimation()
 void CWaitingAnimator::StartAnimation_old()
 {
     _effectState_old = 0;
-    RgbColor pcolor = RgbColor(5,107,12);
+    RgbColor pcolor = RgbColor(5,107,12);
     
     Serial.println("StartAnimation\n");
     

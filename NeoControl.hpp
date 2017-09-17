@@ -44,13 +44,7 @@ public:
     
     void loop();
     
-    void SetStripColor(const RgbColor& color);
-    
-    void SetStripColor(const HsbColor& color);
-    
     void SetStripColor(const HslColor& color);
-    
-    //void SetStripBrightness(uint8_t targetBrightness);
     
     void PowerOn();
     
@@ -71,11 +65,6 @@ public:
     HslColor GetCurrentHslColor() // const
     {
         return State->CurrentColor_hsl;
-    }
-    
-    RgbColor GetCurrentRgbColor() // const
-    {
-        return State->CurrentColor;
     }
     
     void StartWaitingAnimation()
@@ -108,8 +97,6 @@ private:
     uint8_t _maxBrightness = 255;
     
     CWaitingAnimator * _waitAnimations;
-    
-    NeoPixelAnimator * _brightFadingAnimator;
     NeoPixelAnimator * _colorFadingAnimator;
     
     uint16_t _colorFadingTime       = 1000;
@@ -123,9 +110,6 @@ private:
     void _setStripColor(const HslColor& color);
     
     void FadeToHslColor(uint16_t time, const HslColor& targetColor);
-    void FadeToRgbColor(uint16_t time, const RgbColor& targetColor);
-    
-    void FadeToBrightness(uint16_t time, uint8_t targetBrightness);
     
 protected:
     uint16_t _pin = 0;
