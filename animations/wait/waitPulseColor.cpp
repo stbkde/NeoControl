@@ -20,65 +20,39 @@ License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
 
-#include <QList.h>
+#include "../../waitPulseColor.h"
 
-#include "WaitingAnimations.h"
-#include "TWaitAnimation.h"
-#include "animations/wait/waitPulseColor.h"
 
 extern TNeoBus * NeoStrip;
 extern TState * State;
 extern TSettings * Settings;
 
-NeoPixelAnimator * WaitingAnimator = nullptr;
+extern NeoPixelAnimator * WaitingAnimator;
 
 
-uint16_t _effectState_old = 0; 
+uint16_t _effectState = 0; 
 
-struct _animationStateType_old
+struct _animationStateType
 {
     RgbColor StartingColor;
     RgbColor EndingColor;
 };
 
-_animationStateType_old _animationState_old[1];
+_animationStateType _animationState[1];
 
 
-void CWaitingAnimator::_init_animator()
+void waitPulseColor::StartAnimation()
 {
-    if (WaitingAnimator) {
-        delete WaitingAnimator;
-        WaitingAnimator = nullptr;
-    }
-    
-    if (!WaitingAnimator) {
-        WaitingAnimator = new NeoPixelAnimator(NeoStrip->PixelCount());
-    }
-    
-    //this->_waitingAnimations = new waitPulseColor;
-}
-
-void CWaitingAnimator::StartAnimation()
-{
-    if (Settings->WaitingAnimation == PULSE_COLOR)
-    {
-        // ein globales objekt welches mit CWaitingAnimator gesteuert werden kann.
-        //waitPulseColor 
-    }
-}
-
-void CWaitingAnimator::StartAnimation_old()
-{
-    _effectState_old = 0;
-    RgbColor pcolor = RgbColor(5,107,12);
+    _effectState = 0;
+    RgbColor pcolor = RgbColor(20,30,5);
     
     Serial.println("StartAnimation\n");
     
     AnimUpdateCallback _blendAnimUpdate = [=](const AnimationParam& param)
     {
         RgbColor updatedColor = RgbColor::LinearBlend(
-            _animationState_old[param.index].StartingColor,
-            _animationState_old[param.index].EndingColor,
+            _animationState[param.index].StartingColor,
+            _animationState[param.index].EndingColor,
             param.progress);
         
         for (uint16_t pixel = 0; pixel < NeoStrip->PixelCount(); pixel++)
@@ -91,47 +65,25 @@ void CWaitingAnimator::StartAnimation_old()
     {
         if (param.state == AnimationState_Completed)
         {
-            if (_effectState_old == 0)
+            if (_effectState == 0)
             {
-                _animationState_old[0].StartingColor = NeoStrip->GetPixelColor(0);
+                _animationState[0].StartingColor = NeoStrip->GetPixelColor(0);
                 
                 WaitingAnimator->StartAnimation(0, 1000, _blendAnimUpdate);
-                _animationState_old[0].EndingColor = pcolor;
+                _animationState[0].EndingColor = pcolor;
             }
-            else if (_effectState_old == 1)
+            else if (_effectState == 1)
             {
-                _animationState_old[0].StartingColor = NeoStrip->GetPixelColor(0);
-                _animationState_old[0].EndingColor = State->CurrentColor;
+                _animationState[0].StartingColor = NeoStrip->GetPixelColor(0);
+                _animationState[0].EndingColor = State->CurrentColor;
                 
                 WaitingAnimator->StartAnimation(0, 1000, _blendAnimUpdate);
             }
             
-            _effectState_old = (_effectState_old + 1) % 2;
+            _effectState = (_effectState + 1) % 2;
             WaitingAnimator->RestartAnimation(param.index);
         }   
     };
     
     WaitingAnimator->StartAnimation(1, 1000, _pulseAnimUpdate);    // time = 1000
-}
-
-void CWaitingAnimator::StopAnimation()
-{
-    WaitingAnimator->StopAll();
-}
-
-bool CWaitingAnimator::IsAnimating()
-{
-    return WaitingAnimator->IsAnimating();
-}
-
-
-void CWaitingAnimator::loop()
-{
-    if (WaitingAnimator) {
-        if (WaitingAnimator->IsAnimating()) 
-        {
-            WaitingAnimator->UpdateAnimations();
-            NeoStrip->Show();
-        }
-    }
 }

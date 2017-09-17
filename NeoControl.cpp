@@ -1,10 +1,30 @@
+/*-------------------------------------------------------------------------
+NeoControl
+
+Written by Stephan Beier
+
+-------------------------------------------------------------------------
+NeoControl is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3 of
+the License, or (at your option) any later version.
+
+NeoControl is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public
+License along with NeoPixel.  If not, see
+<http://www.gnu.org/licenses/>.
+-------------------------------------------------------------------------*/
+
 #include "NeoControl.h" 
 #include "NeoBus.h"
 
-NeoBusType * NeoStrip = nullptr;
-NeoPixelAnimator * WaitingAnimator = nullptr; // waiting animator !!
-
-StateType * State = nullptr;
+TNeoBus * NeoStrip = nullptr;
+TState * State = nullptr;
+TSettings * Settings = nullptr;
 
 
 NeoControl::NeoControl(uint16_t pixelcount, uint8_t pin) :
@@ -15,7 +35,8 @@ NeoControl::NeoControl(uint16_t pixelcount, uint8_t pin) :
     this->_colorFadingAnimator  = new NeoPixelAnimator(_countPixels);
     this->_waitAnimations = new CWaitingAnimator;
     
-    State = new StateType;
+    Settings = new TSettings;
+    State = new TState;
 }
 
 void NeoControl::setup() 
@@ -30,7 +51,6 @@ void NeoControl::loop()
 {
     if (this->_colorFadingAnimator->IsAnimating()) 
     {
-        Serial.println("loop() | _colorFadingAnimator is animating");
         this->_colorFadingAnimator->UpdateAnimations();
         NeoStrip->Show();
     }
@@ -41,13 +61,7 @@ void NeoControl::loop()
         NeoStrip->Show();
     }
     
-    if (_waitAnimations) {
-        if (_waitAnimations->IsAnimating()) 
-        {
-            WaitingAnimator->UpdateAnimations();
-            NeoStrip->Show();
-        }
-    }
+    _waitAnimations->loop();
 }
     
 void NeoControl::SetStripColor(RgbColor color)
@@ -99,7 +113,7 @@ void NeoControl::SetStripBrightness(uint8_t targetBrightness)
 {
     if ((targetBrightness >= _minBrightness) && (targetBrightness <= _maxBrightness))
     {
-        if (WaitingAnimator->IsAnimating())
+        if (_waitAnimations->IsAnimating())
         {
             //Serial.println("NeoControl::SetStripBrightness | WaitingAnimationRunning == true");
             this->_brightFadingAnimator->StopAll();
@@ -144,7 +158,7 @@ void NeoControl::PowerOn()
         State->PowerState = ON;
         
         if (State->LastColor == RgbColor(0)) { // after hardreset
-            State->LastColor = RgbColor(255,0,0);
+            State->LastColor = RgbColor(107,127,22);
         }
         if (State->LastBrightness < 50) {
             State->LastBrightness += 100;
@@ -171,7 +185,7 @@ void NeoControl::PowerOff()
     {
         Serial.println("NeoControl::PowerOff() | Switching OFF and setting LastRgbColor = CurrentRgbColor");
         
-        if (WaitingAnimator->IsAnimating()) 
+        if (_waitAnimations->IsAnimating()) 
         {
             State->LastColor = State->CurrentColor;
             State->CurrentColor = RgbColor(0);
@@ -222,7 +236,7 @@ void NeoControl::_init_leds()
     if (!_countPixels) {
         _countPixels = 1;
     }
-    NeoStrip = new NeoBusType(_countPixels);
+    NeoStrip = new TNeoBus(_countPixels);
 
     if (NeoStrip) {
         NeoStrip->Begin();
@@ -249,7 +263,7 @@ void NeoControl::FadeToRgbColor(uint16_t time, RgbColor targetColor)
     
     uint16_t stepcount = 1;
     
-    if ((State->PowerState == ON) && (_powerSavingMode))
+    if ((State->PowerState == ON) && (_powerSavingMode == ON))
         stepcount = 2;
     
     for (uint16_t pixel = 0; pixel < NeoStrip->PixelCount(); pixel += stepcount)
@@ -275,8 +289,6 @@ void NeoControl::FadeToBrightness(uint16_t time, uint8_t targetBrightness)
     }
     uint16_t originalBrightness = NeoStrip->GetBrightness();
     AnimEaseFunction easing = NeoEase::Linear;
-    
-    Serial.println("Fading from " + String(originalBrightness) + " to brightness " + String(targetBrightness) + " with time ms " + String(time));
 
     AnimUpdateCallback brightAnimUpdate = [=](const AnimationParam& param)
     {        
@@ -301,12 +313,15 @@ void NeoControl::FadeToBrightness(uint16_t time, uint8_t targetBrightness)
         
         if (NeoStrip->GetBrightness() != updatedBrightness) 
         {
-            //Serial.println("Setting updated brightness = " + String(updatedBrightness));
             NeoStrip->SetBrightness(updatedBrightness);
         }
     };
     
-    this->_brightFadingAnimator->StartAnimation(1, time, brightAnimUpdate);   
+    if (originalBrightness != targetBrightness) 
+    {
+        Serial.println("Fading from " + String(originalBrightness) + " to brightness " + String(targetBrightness) + " with time ms " + String(time));
+        this->_brightFadingAnimator->StartAnimation(1, time, brightAnimUpdate);   
+    }
 }
 
 void NeoControl::_setStripColor(RgbColor color)

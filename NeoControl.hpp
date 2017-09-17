@@ -1,5 +1,3 @@
-#pragma once
-
 /*-------------------------------------------------------------------------
 NeoControl
 
@@ -11,7 +9,7 @@ it under the terms of the GNU Lesser General Public License as
 published by the Free Software Foundation, either version 3 of
 the License, or (at your option) any later version.
 
-NeoPixelBus is distributed in the hope that it will be useful,
+NeoControl is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
@@ -20,9 +18,7 @@ You should have received a copy of the GNU Lesser General Public
 License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
-
-#define ON  true
-#define OFF false
+#pragma once
 
 #include "config.h"
 #include "NeoBus.h"
@@ -32,8 +28,9 @@ License along with NeoPixel.  If not, see
 #include "WaitingAnimations.h"
 
 
-extern NeoBusType * NeoStrip;
-extern StateType * State;
+extern TNeoBus * NeoStrip;
+extern TState * State;
+extern TSettings * Settings;
 
 
 class NeoControl
@@ -90,7 +87,7 @@ public:
     void StartWaitingAnimation()
     {
         printInfo();
-        _waitAnimations->StartAnimation();
+        _waitAnimations->StartAnimation_old();
     }
     
     void StopWaitingAnimation()
@@ -111,7 +108,7 @@ public:
     
 
 private:
-    bool _powerSavingMode = true;
+    bool _powerSavingMode = false;
     
     uint8_t _minBrightness = 20;
     uint8_t _maxBrightness = 255;
