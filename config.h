@@ -26,8 +26,6 @@ License along with NeoPixel.  If not, see
 
 #define WS281X_FEATURE NeoGrbFeature
 #define WS281X_METHOD Neo800KbpsMethod
-#define WS281X_STRIP_COUNT 30
-#define WS281X_STRIP_PIN 3
 
 #endif
  

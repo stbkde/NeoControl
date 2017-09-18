@@ -55,8 +55,8 @@ struct TSettings
     uint16_t FirstPixel = 0;
     uint16_t PixelCount = 0;
     
-    uint8_t MinBrightness = 1;
-    uint8_t MaxBrightness = 95;
+    uint8_t MinBrightness = 20;
+    uint8_t MaxBrightness = 70;
     
     uint16_t WaitingAnimation = PULSE_COLOR; // default
     

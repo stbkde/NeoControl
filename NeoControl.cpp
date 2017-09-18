@@ -59,7 +59,10 @@ void NeoControl::loop()
     
 void NeoControl::SetStripColor(const HslColor& color)
 {
-    //Serial.println("NeoControl::SetStripColor(HslColor) | Set to color hsl: " + State->LastColor.toString(','));
+    HslColor tcolor = color;
+ 
+    if (tcolor.L > Settings->MaxBrightness)
+        tcolor.L = Settings->MaxBrightness;
     
     if (_waitAnimations->IsAnimating())
     {
@@ -70,13 +73,13 @@ void NeoControl::SetStripColor(const HslColor& color)
             //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is ON");
         
             State->LastColor = State->CurrentColor;
-            State->CurrentColor = color;
+            State->CurrentColor = tcolor;
         }
         else 
         {
             //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is OFF");
             
-            State->LastColor = color;
+            State->LastColor = tcolor;
         }
     }
     else
@@ -90,16 +93,16 @@ void NeoControl::SetStripColor(const HslColor& color)
             //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is ON");
             
             State->LastColor = State->CurrentColor;
-            State->CurrentColor = color;
+            State->CurrentColor = tcolor;
             
             this->_colorFadingAnimator->StopAll();
-            _fadeToColor(color);
+            _fadeToColor(tcolor);
         }
         else 
         {
             //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is OFF");
             
-            State->LastColor = color;
+            State->LastColor = tcolor;
         }
     }
     
@@ -302,10 +305,14 @@ void NeoControl::_fadeRgb(uint16_t time, const HslColor& targetColor)
 
 void NeoControl::_setStripColor(const HslColor& color)
 {
-    //Serial.println("NeoControl::_setStripColor(HslColor color)");
+    HslColor tcolor = color;
+    
+    if (tcolor.L > Settings->MaxBrightness)
+        tcolor.L = Settings->MaxBrightness;
+    
     for (uint16_t pixel=0; pixel<=_countPixels; pixel++)
     {
-        NeoStrip->SetPixelColor(pixel, color);
+        NeoStrip->SetPixelColor(pixel, tcolor);
     }
     NeoStrip->Show();
     
