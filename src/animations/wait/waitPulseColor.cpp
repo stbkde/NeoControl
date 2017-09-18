@@ -20,7 +20,7 @@ License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
 
-#include "../../waitPulseColor.h"
+#include "waitPulseColor.h"
 
 
 extern TNeoBus * NeoStrip;
@@ -41,7 +41,7 @@ struct _animationStateType
 _animationStateType _animationState[1];
 
 
-void waitPulseColor::StartAnimation()
+void waitPulseColor::Start()
 {
     _effectState = 0;
     RgbColor pcolor = RgbColor(20,30,5);

@@ -19,50 +19,13 @@ License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
 
-#ifndef SRC_NEOBUS_H
-#define SRC_NEOBUS_H
+#ifndef SRC_CONFIG_H
+#define SRC_CONFIG_H
 
-#include "NeoPixelBrightnessBus.h"
+// More information on https://github.com/Makuna/NeoPixelBus/wiki/NeoPixelBus-object
 
+#define WS281X_FEATURE NeoGrbFeature
+#define WS281X_METHOD Neo800KbpsMethod
 
-#define ON  true
-#define OFF false
-
-
-typedef NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> TNeoBus;
-
-
-// Waiting animations 1***
-#define PULSE_COLOR 1001
-#define PULSE_BRIGHTNESS 1002
-
-// Other animations 2***
-
-
-struct TState 
-{
-    bool PowerState = OFF;
-    
-    HslColor LastColor;
-    HslColor CurrentColor;
-};
-
-// one per strip-part
-struct TSettings
-{    
-    bool PowerSaving = false;
-    
-    uint16_t FirstPixel = 0;
-    uint16_t PixelCount = 0;
-    
-    uint8_t MinBrightness = 1;
-    uint8_t MaxBrightness = 95;
-    
-    uint16_t WaitingAnimation = PULSE_COLOR; // default
-    
-    uint16_t FadingTime = 1600;
-    String FadeEffect = "smooth";   // smooth, rainbow (, darken)
-};
-
-
-#endif  // SRC_NEOBUS_H
+#endif
+ 
