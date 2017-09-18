@@ -62,9 +62,9 @@ public:
         return _pin;
     }
     
-    HslColor GetCurrentHslColor() // const
+    HslColor GetCurrentColor() // const
     {
-        return State->CurrentColor_hsl;
+        return State->CurrentColor;
     }
     
     void StartWaitingAnimation()
@@ -93,14 +93,8 @@ public:
 private:
     bool _powerSavingMode = false;
     
-    uint8_t _minBrightness = 20;
-    uint8_t _maxBrightness = 255;
-    
     CWaitingAnimator * _waitAnimations;
     NeoPixelAnimator * _colorFadingAnimator;
-    
-    uint16_t _colorFadingTime       = 1000;
-    uint16_t _brightnessFadingTime  = 2000;
     
     unsigned long timerCurrentMillis = 0;
     unsigned long timerLastMillis    = 0;
@@ -109,13 +103,13 @@ private:
     
     void _setStripColor(const HslColor& color);
     
-    void FadeToHslColor(uint16_t time, const HslColor& targetColor);
+    void _fadeToColor(const HslColor& targetColor);
+    
+    void _fadeHsl(uint16_t time, const HslColor& targetColor);
+    void _fadeRgb(uint16_t time, const HslColor& targetColor);
     
 protected:
     uint16_t _pin = 0;
     uint16_t _countPixels = 0;
     
 };
-
-//NeoControl StripControl(30, 3);
- 

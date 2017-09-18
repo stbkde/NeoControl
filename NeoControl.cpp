@@ -59,75 +59,74 @@ void NeoControl::loop()
     
 void NeoControl::SetStripColor(const HslColor& color)
 {
-    Serial.println("NeoControl::SetStripColor(HslColor) | Set to color hsl: " + State->LastColor_hsl.toString(','));
+    //Serial.println("NeoControl::SetStripColor(HslColor) | Set to color hsl: " + State->LastColor.toString(','));
     
     if (_waitAnimations->IsAnimating())
     {
+        //Serial.println("NeoControl::SetStripColor(HslColor) | Waiting animator is ON");
+        
         if (State->PowerState == ON) 
         {
-            State->LastColor_hsl = State->CurrentColor_hsl;
-            State->CurrentColor_hsl = color;
+            //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is ON");
+        
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = color;
         }
         else 
         {
-            // set black
-            State->LastColor_hsl = color;
-            State->CurrentColor_hsl = HslColor(0);
+            //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is OFF");
             
-            //_setStripColor(HslColor(0));
-            FadeToHslColor(_colorFadingTime, HslColor(0));
+            State->LastColor = color;
         }
     }
     else
     {
-        Serial.println("NeoControl::SetStripColor(HslColor) | Waiting animator is OFF");
+        //Serial.println("NeoControl::SetStripColor(HslColor) | Waiting animator is OFF");
+        
         this->_colorFadingAnimator->StopAll();
         
         if (State->PowerState == ON)
         {
-            State->LastColor_hsl = State->CurrentColor_hsl;
-            State->CurrentColor_hsl = color;
+            //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is ON");
+            
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = color;
             
             this->_colorFadingAnimator->StopAll();
-            FadeToHslColor(_colorFadingTime, color);
+            _fadeToColor(color);
         }
         else 
         {
-            Serial.println("NeoControl::SetStripColor(HslColor) | Power State is OFF");
-            // set black
+            //Serial.println("NeoControl::SetStripColor(HslColor) | Power State is OFF");
             
-            State->LastColor_hsl = color;
-            State->CurrentColor_hsl = HslColor(0);
-            
-            FadeToHslColor(_colorFadingTime, HslColor(0));
+            State->LastColor = color;
         }
     }
+    
+    printInfo();
 }
 
 void NeoControl::PowerOn()
 {   
     if (State->PowerState == OFF) 
     {   
-        Serial.println("NeoControl::PowerOn() | Received switch on signal...");
+        //Serial.println("NeoControl::PowerOn() | Received switch on signal...");
         State->PowerState = ON;
         
-        if (State->LastColor_hsl == HslColor(0)) { // after hardreset
-            State->LastColor_hsl = HslColor(100,100,50);
-        }
-        
-        if (State->LastBrightness < 50) {
-            State->LastBrightness += 100;
+        if (State->LastColor == HslColor(0)) { // after hardreset
+            State->LastColor = HslColor(100,100,50);  // default light yellow
         }
         
         if (_waitAnimations->IsAnimating()) 
         {
-            Serial.println("NeoControl::PowerOn() | WaitingAnimationRunning == true");
+            //Serial.println("NeoControl::PowerOn() | WaitingAnimationRunning == true");
             
-            State->CurrentColor_hsl = State->LastColor_hsl;
+            State->CurrentColor = State->LastColor;
         }
         else 
         {   
-            SetStripColor(State->LastColor_hsl);
+            State->CurrentColor = State->LastColor;
+            _fadeToColor(State->CurrentColor);
         }
     }
 }
@@ -136,16 +135,18 @@ void NeoControl::PowerOff()
 {
     if (State->PowerState == ON)
     {
-        Serial.println("NeoControl::PowerOff() | Switching OFF");
+        //Serial.println("NeoControl::PowerOff() | Switching OFF");
         
         if (_waitAnimations->IsAnimating()) 
         {
-            State->LastColor_hsl = State->CurrentColor_hsl;
-            State->CurrentColor_hsl = HslColor(0);
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = HslColor(0);
         }
         else 
         {
-            SetStripColor(HslColor(0));
+            State->LastColor = State->CurrentColor;
+            State->CurrentColor = HslColor(0);
+            _fadeToColor(HslColor(0));
         }
         
         State->PowerState = OFF;
@@ -161,8 +162,8 @@ void NeoControl::printInfo() {
     Serial.println("*********** Color Info ***********************");
     Serial.println("*");
     Serial.println("*********** HSL Color Values ***********************");
-    Serial.println("* Last Color: HSL:" + String(State->LastColor_hsl.toString(',')));
-    Serial.println("* Current Color: HSL:" + String(State->CurrentColor_hsl.toString(',')));
+    Serial.println("* Last Color: HSL:" + String(State->LastColor.toString(',')));
+    Serial.println("* Current Color: HSL:" + String(State->CurrentColor.toString(',')));
     Serial.println("*");
 }
 
@@ -196,15 +197,27 @@ void NeoControl::_init_leds()
         Serial.println("NeoControl::_init_leds() | Strip-Show ;)");
         NeoStrip->Show();
     } else {
-        Serial.println("ERROR CREATING STRIP");
+        Serial.println("Error creating strip !!");
     }
     Serial.println("NeoControl::_init_leds() | Done!");
 
 }
 
-void NeoControl::FadeToHslColor(uint16_t time, const HslColor& targetColor)
+void NeoControl::_fadeToColor(const HslColor& targetColor)
 {
-    Serial.println("NeoControl::FadeToHslColor(uint16_t time, HslColor targetColor)");
+    if (Settings->FadeEffect == "smooth") {
+        _fadeRgb(Settings->FadingTime, targetColor);
+    }
+    else if (Settings->FadeEffect == "rainbow") {
+        _fadeHsl(Settings->FadingTime, targetColor);
+    }
+    else if (Settings->FadeEffect == "darken") {
+        _fadeHsl(Settings->FadingTime, targetColor);
+    }
+}
+
+void NeoControl::_fadeHsl(uint16_t time, const HslColor& targetColor)
+{
     AnimEaseFunction easing = NeoEase::Linear;
     
     uint16_t stepcount = 1;
@@ -219,8 +232,64 @@ void NeoControl::FadeToHslColor(uint16_t time, const HslColor& targetColor)
         AnimUpdateCallback colorAnimUpdate = [=](const AnimationParam& param)
         {
             float progress = easing(param.progress);
-            HslColor updatedColor = HslColor::LinearBlend<NeoHueBlendShortestDistance>(originalColor, targetColor, progress);
-            NeoStrip->SetPixelColor(pixel, updatedColor);
+            
+            if (Settings->FadeEffect == "rainbow") 
+            {
+                HslColor updatedColor = HslColor::LinearBlend<NeoHueBlendLongestDistance>(originalColor, 
+                                                                                       targetColor,
+                                                                                       progress);
+                NeoStrip->SetPixelColor(pixel, updatedColor);
+            }
+            else if (Settings->FadeEffect == "darken") 
+            {
+                HslColor updatedColor = HslColor::LinearBlend<NeoHueBlendShortestDistance>(originalColor, 
+                                                                                       targetColor,
+                                                                                       progress);
+                if (progress > 0.5f) {
+                    updatedColor = HslColor(updatedColor.H, updatedColor.S, (1.0f - progress));
+                }
+                else if (progress > 0.5f) {
+                    updatedColor = HslColor(updatedColor.H, updatedColor.S, progress);
+                }
+                NeoStrip->SetPixelColor(pixel, updatedColor);
+            }
+            //      NeoHueBlendShortestDistance
+            //      NeoHueBlendLongestDistance
+            //      NeoHueBlendClockwiseDirection
+            //      NeoHueBlendCounterClockwiseDirection
+            
+            // More informations: https://github.com/Makuna/NeoPixelBus/wiki/NeoHueBlend-objects
+        };
+        
+        // starting all at once
+        _colorFadingAnimator->StartAnimation(pixel, time, colorAnimUpdate);
+        
+        // Do not update all pixels at once but the leftmost twice as fast
+        //_colorFadingAnimator->StartAnimation(pixel, time/2 +(pixel*time)/pixel/2, colorAnimUpdate); 
+    }
+};
+
+void NeoControl::_fadeRgb(uint16_t time, const HslColor& targetColor)
+{
+    AnimEaseFunction easing = NeoEase::Linear;
+    
+    RgbColor targetColorRgb(targetColor);
+    
+    uint16_t stepcount = 1;
+    
+    if ((State->PowerState == ON) && (_powerSavingMode == ON))
+        stepcount = 2;
+    
+    for (uint16_t pixel = 0; pixel < NeoStrip->PixelCount(); pixel += stepcount)
+    {
+        RgbColor originalColor = NeoStrip->GetPixelColor(pixel); 
+        
+        AnimUpdateCallback colorAnimUpdate = [=](const AnimationParam& param)
+        {
+            float progress = easing(param.progress);
+            RgbColor updatedColor = RgbColor::LinearBlend(originalColor, targetColor, progress);
+            
+            NeoStrip->SetPixelColor(pixel, HslColor(updatedColor));
         };
         
         // starting all at once
@@ -233,7 +302,7 @@ void NeoControl::FadeToHslColor(uint16_t time, const HslColor& targetColor)
 
 void NeoControl::_setStripColor(const HslColor& color)
 {
-    Serial.println("NeoControl::_setStripColor(HslColor color)");
+    //Serial.println("NeoControl::_setStripColor(HslColor color)");
     for (uint16_t pixel=0; pixel<=_countPixels; pixel++)
     {
         NeoStrip->SetPixelColor(pixel, color);

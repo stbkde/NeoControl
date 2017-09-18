@@ -43,14 +43,8 @@ struct TState
 {
     bool PowerState = OFF;
     
-    RgbColor LastColor;
-    RgbColor CurrentColor;
-    
-    HslColor LastColor_hsl;
-    HslColor CurrentColor_hsl;
-    
-    uint8_t LastBrightness = 150;
-    uint8_t CurrentBrightness = 150;
+    HslColor LastColor;
+    HslColor CurrentColor;
 };
 
 // one per strip-part
@@ -61,10 +55,13 @@ struct TSettings
     uint16_t FirstPixel = 0;
     uint16_t PixelCount = 0;
     
-    uint8_t MinBrightness = 20;
-    uint8_t MaxBrightness = 255;
+    uint8_t MinBrightness = 1;
+    uint8_t MaxBrightness = 95;
     
     uint16_t WaitingAnimation = PULSE_COLOR; // default
+    
+    uint16_t FadingTime = 1600;
+    String FadeEffect = "smooth";   // smooth, rainbow (, darken)
 };
 
 
