@@ -165,8 +165,8 @@ void NeoControl::printInfo() {
     Serial.println("*********** Color Info ***********************");
     Serial.println("*");
     Serial.println("*********** HSL Color Values ***********************");
-    Serial.println("* Last Color: HSL:" + String(State->LastColor.toString(',')));
-    Serial.println("* Current Color: HSL:" + String(State->CurrentColor.toString(',')));
+    Serial.println("* Last Color: HSL:" + String(State->LastColor.ToString(',')));
+    Serial.println("* Current Color: HSL:" + String(State->CurrentColor.ToString(',')));
     Serial.println("*");
 }
 

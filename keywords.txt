@@ -1,0 +1,28 @@
+#######################################
+# Syntax Coloring Map NeoPixelBus
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+NeoControl	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+PowerOn	KEYWORD2
+PowerOff	KEYWORD2
+PowerState	KEYWORD2
+SetStripColor	KEYWORD2
+GetCurrentColor	KEYWORD2
+StartWaitingAnimation	KEYWORD2
+StopWaitingAnimation	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+ON	LITERAL1
+OFF	LITERAL1
