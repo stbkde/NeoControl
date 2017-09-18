@@ -23,6 +23,8 @@ License along with NeoPixel.  If not, see
 #include "config.h"
 #include "NeoBus.h"
 
+#include <functional>
+
 #include <NeoPixelBrightnessBus.h>
 #include <NeoPixelAnimator.h>
 #include "WaitingAnimations.h"
@@ -42,9 +44,7 @@ public:
     
     void loop();
     
-    void SetStripColor(RgbColor color);
-    
-    void SetStripBrightness(uint8_t targetBrightness);
+    void SetStripColor(const HslColor& color);
     
     void PowerOn();
     
@@ -62,26 +62,9 @@ public:
         return _pin;
     }
     
-    RgbColor GetLastColor() // const
-    {
-        return State->LastColor;
-    }
-    
-    //?
-    void SetLastColor(RgbColor color)
-    {
-        State->LastColor = color;
-    }
-    
-    RgbColor GetCurrentColor() // const
+    HslColor GetCurrentColor() // const
     {
         return State->CurrentColor;
-    }
-    
-    //?
-    void SetCurrentColor(RgbColor color)
-    {
-        State->CurrentColor = color;
     }
     
     void StartWaitingAnimation()
@@ -110,33 +93,23 @@ public:
 private:
     bool _powerSavingMode = false;
     
-    uint8_t _minBrightness = 20;
-    uint8_t _maxBrightness = 255;
-    
     CWaitingAnimator * _waitAnimations;
-    
-    NeoPixelAnimator * _brightFadingAnimator;
     NeoPixelAnimator * _colorFadingAnimator;
-    
-    uint16_t _colorFadingTime       = 1000;
-    uint16_t _brightnessFadingTime  = 2000;
     
     unsigned long timerCurrentMillis = 0;
     unsigned long timerLastMillis    = 0;
     
     void _init_leds();
     
-    void _setStripColor(RgbColor color);
+    void _setStripColor(const HslColor& color);
     
-    void FadeToRgbColor(uint16_t time, RgbColor targetColor);
+    void _fadeToColor(const HslColor& targetColor);
     
-    void FadeToBrightness(uint16_t time, uint8_t targetBrightness);
+    void _fadeHsl(uint16_t time, const HslColor& targetColor);
+    void _fadeRgb(uint16_t time, const HslColor& targetColor);
     
 protected:
     uint16_t _pin = 0;
     uint16_t _countPixels = 0;
     
 };
-
-//NeoControl StripControl(30, 3);
- 

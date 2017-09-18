@@ -24,21 +24,46 @@ StripControl.setup();
 
 // add to mainloop!
 StripControl.loop();
-
-// fade to color
-StripControl.SetStripColor(RgbColor(123,76,107));
-
-// fade to brightness
-StripControl.SetStripBrightness(198);   // max. 255
-
-// toogle power state of your strip 
+```
+### Toogle the power state of your strip 
+```c++
 StripControl.PowerOn();
 StripControl.PowerOff();
 
 // check state    
 if (StripControl.PowerState() == ON)   // you can use ON/OFF instead of true/false
 { ... }
+```
+### Color
+```c++
+// set the strip color as HslColor
+StripControl.SetStripColor(HslColor(230,75,65));
 
-// Start waiting animation
+// you can set the color as Rgb and Hsb too
+HsbColor hsbcol(240,65,75);
+
+// parse it directly from a string
+String rgbval = "155,25,210";
+RgbColor rgbcol(rgbval, ',');
+
+StripControl.SetStripColor(HslColor(hsbcol));
+StripControl.SetStripColor(HslColor(rgbcol));
+
+// convert between color spaces
+HslColor hsl(HsbColor(230,70,60));
+RgbColor rgb(StripControl.GetCurrentColor());   // hsl -> rgb
+```
+### Brightness
+
+The brightness can be controlled via the luminance value of the HslColor, Range [0, 100]
+```c++
+HslColor hslcol(230,75,65);
+int targetBrightness = 60;  // range [0, 100]
+HslColor newColor(hslcol.H, hslcol.S, float(targetBrightness/100));
+StripControl.SetStripColor(newColor);
+```
+### Waiting animation
+```c++
 StripControl.StartWaitingAnimation();
 StripControl.StopWaitingAnimation();
+```

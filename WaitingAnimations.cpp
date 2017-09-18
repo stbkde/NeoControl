@@ -70,7 +70,7 @@ void CWaitingAnimator::StartAnimation()
 void CWaitingAnimator::StartAnimation_old()
 {
     _effectState_old = 0;
-    RgbColor pcolor = RgbColor(5,107,12);
+    RgbColor pcolor = RgbColor(5,107,12);
     
     Serial.println("StartAnimation\n");
     
@@ -101,7 +101,7 @@ void CWaitingAnimator::StartAnimation_old()
             else if (_effectState_old == 1)
             {
                 _animationState_old[0].StartingColor = NeoStrip->GetPixelColor(0);
-                _animationState_old[0].EndingColor = State->CurrentColor;
+                _animationState_old[0].EndingColor = RgbColor(State->CurrentColor);
                 
                 WaitingAnimator->StartAnimation(0, 1000, _blendAnimUpdate);
             }
