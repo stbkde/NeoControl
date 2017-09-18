@@ -19,7 +19,7 @@ At the moment by default NeoControl only works with WS281X leds. I'll fix that l
 
 NeoControl StripControl(30, 3); // pixelcount, pin
 
-// add to mainsetup!
+// add to main setup!
 StripControl.setup();
 
 // add to mainloop!
@@ -57,7 +57,8 @@ RgbColor rgb(StripControl.GetCurrentColor());   // hsl -> rgb
 ```
 ### Brightness (Luminance)
 
-The brightness can be controlled via the luminance value of the HslColor, Range [0, 100]
+The brightness can be controlled via the luminance value of the HslColor, Range [0, 100]. 
+
 By default the maximum brightness (luminance) is at 80 and the minimum is 20.
 ```c++
 HslColor hslcol(230,75,65);
