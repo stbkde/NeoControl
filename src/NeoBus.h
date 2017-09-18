@@ -22,14 +22,14 @@ License along with NeoPixel.  If not, see
 #ifndef SRC_NEOBUS_H
 #define SRC_NEOBUS_H
 
-#include "NeoPixelBrightnessBus.h"
+#include "NeoPixelBus.h"
 
 
 #define ON  true
 #define OFF false
 
 
-typedef NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> TNeoBus;
+typedef NeoPixelBus<WS281X_FEATURE, WS281X_METHOD> TNeoBus;
 
 
 // Waiting animations 1***

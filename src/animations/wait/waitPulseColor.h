@@ -21,7 +21,7 @@ License along with NeoPixel.  If not, see
 #pragma once
 
 
-#include <NeoPixelBrightnessBus.h>
+#include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 
 #include "../../TWaitAnimation.h"
