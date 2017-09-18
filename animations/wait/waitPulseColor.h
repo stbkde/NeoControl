@@ -18,38 +18,23 @@ You should have received a copy of the GNU Lesser General Public
 License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
-
 #pragma once
 
-#include <QList.h>
 
 #include <NeoPixelBrightnessBus.h>
 #include <NeoPixelAnimator.h>
 
-#include "config.h"
-#include "NeoBus.h"
-#include "TWaitAnimation.h"
+#include "../../TWaitAnimation.h"
+#include "../../config.h"
+#include "../../NeoBus.h"
 
 
-class CWaitingAnimator
+class waitPulseColor : public TWaitAnimation
 {
-public:
-    CWaitingAnimator()
+public:    
+    waitPulseColor()
     {
     }
     
-    void _init_animator();
-    
-    void StartAnimation();
-    
-    void StartAnimation_old();
-    
-    void StopAnimation();
-    
-    bool IsAnimating();
-    
-    void loop();
-    
-private:
-    TWaitAnimation * _waitingAnimations;
+    void Start();
 };

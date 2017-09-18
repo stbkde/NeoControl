@@ -19,37 +19,50 @@ License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef SRC_NEOBUS_H
+#define SRC_NEOBUS_H
 
-#include <QList.h>
-
-#include <NeoPixelBrightnessBus.h>
-#include <NeoPixelAnimator.h>
-
-#include "config.h"
-#include "NeoBus.h"
-#include "TWaitAnimation.h"
+#include "NeoPixelBrightnessBus.h"
 
 
-class CWaitingAnimator
+#define ON  true
+#define OFF false
+
+
+typedef NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> TNeoBus;
+
+
+// Waiting animations 1***
+#define PULSE_COLOR 1001
+#define PULSE_BRIGHTNESS 1002
+
+// Other animations 2***
+
+
+struct TState 
 {
-public:
-    CWaitingAnimator()
-    {
-    }
+    bool PowerState = OFF;
     
-    void _init_animator();
-    
-    void StartAnimation();
-    
-    void StartAnimation_old();
-    
-    void StopAnimation();
-    
-    bool IsAnimating();
-    
-    void loop();
-    
-private:
-    TWaitAnimation * _waitingAnimations;
+    HslColor LastColor;
+    HslColor CurrentColor;
 };
+
+// one per strip-part
+struct TSettings
+{    
+    bool PowerSaving = false;
+    
+    uint16_t FirstPixel = 0;
+    uint16_t PixelCount = 0;
+    
+    uint8_t MinBrightness = 1;
+    uint8_t MaxBrightness = 95;
+    
+    uint16_t WaitingAnimation = PULSE_COLOR; // default
+    
+    uint16_t FadingTime = 1600;
+    String FadeEffect = "smooth";   // smooth, rainbow (, darken)
+};
+
+
+#endif  // SRC_NEOBUS_H

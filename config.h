@@ -19,37 +19,15 @@ License along with NeoPixel.  If not, see
 <http://www.gnu.org/licenses/>.
 -------------------------------------------------------------------------*/
 
-#pragma once
+#ifndef SRC_CONFIG_H
+#define SRC_CONFIG_H
 
-#include <QList.h>
+// More information on https://github.com/Makuna/NeoPixelBus/wiki/NeoPixelBus-object
 
-#include <NeoPixelBrightnessBus.h>
-#include <NeoPixelAnimator.h>
+#define WS281X_FEATURE NeoGrbFeature
+#define WS281X_METHOD Neo800KbpsMethod
+#define WS281X_STRIP_COUNT 30
+#define WS281X_STRIP_PIN 3
 
-#include "config.h"
-#include "NeoBus.h"
-#include "TWaitAnimation.h"
-
-
-class CWaitingAnimator
-{
-public:
-    CWaitingAnimator()
-    {
-    }
-    
-    void _init_animator();
-    
-    void StartAnimation();
-    
-    void StartAnimation_old();
-    
-    void StopAnimation();
-    
-    bool IsAnimating();
-    
-    void loop();
-    
-private:
-    TWaitAnimation * _waitingAnimations;
-};
+#endif
+ 
