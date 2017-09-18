@@ -22,14 +22,14 @@ License along with NeoPixel.  If not, see
 #ifndef SRC_NEOBUS_H
 #define SRC_NEOBUS_H
 
-#include "NeoPixelBrightnessBus.h"
+#include "NeoPixelBus.h"
 
 
 #define ON  true
 #define OFF false
 
 
-typedef NeoPixelBrightnessBus<WS281X_FEATURE, WS281X_METHOD> TNeoBus;
+typedef NeoPixelBus<WS281X_FEATURE, WS281X_METHOD> TNeoBus;
 
 
 // Waiting animations 1***
@@ -56,7 +56,7 @@ struct TSettings
     uint16_t PixelCount = 0;
     
     uint8_t MinBrightness = 20;
-    uint8_t MaxBrightness = 70;
+    uint8_t MaxBrightness = 80;
     
     uint16_t WaitingAnimation = PULSE_COLOR; // default
     
